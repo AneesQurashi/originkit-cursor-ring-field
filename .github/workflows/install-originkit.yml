@@ -1,0 +1,39 @@
+name: Install Originkit Cursor Ring Field
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  install:
+    name: Fetch component and commit source
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install project dependencies
+        run: npm install
+      - name: Install component using official CLI
+        env:
+          ORIGINKIT_API_KEY: ${{ secrets.ORIGINKIT_API_KEY }}
+        run: |
+          if [[ -z "$ORIGINKIT_API_KEY" ]]; then
+            echo "Missing GitHub repository secret ORIGINKIT_API_KEY" >&2
+            exit 1
+          fi
+          npx --yes originkit@latest add cursor-ring-field --prompt
+      - name: Commit installed files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if ! git diff --cached --quiet; then
+            git commit -m "Add official Originkit Cursor Ring Field component"
+            git push
+          fi
